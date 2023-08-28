@@ -1,9 +1,12 @@
 package com.example.auth_final2.config;
 
 
+import com.example.auth_final2.service.UserInforUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -30,20 +33,21 @@ public class SecurityConfig {
     // 2.1 Replaced with SecurityFilter chain
     //
     @Bean
-    public UserDetailsService userDetailsService(PasswordEncoder encoder){
-        UserDetails superAdmin  = User.withUsername("sAdmin")
-                .password(encoder.encode("sAdmin"))
-                .roles("ADMIN" , "USER")
-                .build();
-        UserDetails admin  = User.withUsername("admin")
-                .password(encoder.encode( "admin"))
-                .roles("ADMIN")
-                .build();
-        UserDetails user  = User.withUsername("user")
-                .password(encoder.encode("user"))
-                .roles("USER")
-                .build();
-        return  new InMemoryUserDetailsManager(superAdmin , admin, user);
+    public UserDetailsService userDetailsService(){
+//        UserDetails superAdmin  = User.withUsername("sAdmin")
+//                .password(encoder.encode("sAdmin"))
+//                .roles("ADMIN" , "USER")
+//                .build();
+//        UserDetails admin  = User.withUsername("admin")
+//                .password(encoder.encode( "admin"))
+//                .roles("ADMIN")
+//                .build();
+//        UserDetails user  = User.withUsername("user")
+//                .password(encoder.encode("user"))
+//                .roles("USER")
+//                .build();
+//        return  new InMemoryUserDetailsManager(superAdmin , admin, user);
+        return  new UserInforUserDetailsService();
     }
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -58,17 +62,19 @@ public class SecurityConfig {
 
     }
 
-
-
-
-
     // It is not good to keep password plan , we create another bean which encrypt it
     @Bean
     public PasswordEncoder passwordEncoder(){
         return  new BCryptPasswordEncoder();
     }
 
-
+    @Bean
+    public AuthenticationProvider authenticationProvider(){
+        DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider( );
+        authenticationProvider.setUserDetailsService(userDetailsService());
+        authenticationProvider.setPasswordEncoder(passwordEncoder());
+        return authenticationProvider;
+    }
 
 
 
